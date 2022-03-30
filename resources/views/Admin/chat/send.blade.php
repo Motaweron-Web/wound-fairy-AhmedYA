@@ -33,13 +33,13 @@
                                     </div>
                                     <div class="user_info">
                                         <h6 class="mt-1 mb-1 nameOfUser">{{$room->user->name}}<span class="dot-label bg-success mr-2"></span></h6>
-                                        @if($room->user->sentChat->last())
-                                        <span class="">{{ \Illuminate\Support\Str::limit($room->user->sentChat->last()->text,30)}}</span>
+                                        @if($room->text->last())
+                                        <span class="lastChat">{{ \Illuminate\Support\Str::limit($room->text->last()->text,30)}}</span>
                                         @endif
                                     </div>
                                     <div class="float-left text-left mr-auto mt-auto mb-auto text-center">
-                                        @if($room->user->sentChat->count())
-                                            <small class="messageTime">{{ (($room->user->sentChat->last()->created_at)->diffForHumans()) ?? ''}}</small>
+                                        @if($room->text->count())
+                                            <small class="messageTime">{{ (($room->text->last()->created_at)->diffForHumans()) ?? ''}}</small>
                                         @else
                                             <small class="messageTime"></small>
                                         @endif
@@ -160,12 +160,18 @@
 
             function sendMessage(msg,room_id) {
                 $.post('{{url('admin/sendAdminMessage')}}', {
+                    beforeSend: function(){
+                        $('#my-chat-submit').html('<span class="spinner-border spinner-border-sm mr-2" ' +
+                            ' ></span> <span style="margin-left: 4px;"></span>').attr('disabled', true);
+                    },
                     "msg": msg,
                     "room_id": room_id,
                     "_token": "{{csrf_token()}}"
                 }, function (data) {
                     if (data.code == 200) {
                         generate_message(msg, 'self', data.info);
+                        $('.myRoom#'+data.info.room_id).find('.lastChat').text(data.info.text.substring(0,30)+"...")
+                        $('#my-chat-submit').html(`<i class="fa fa-paper-plane"></i>`).attr('disabled', false);
                     } else {
                         toastr.info("نأسف حدث خطأ ...")
                     }
@@ -213,6 +219,7 @@
                     var audio = new Audio("{{asset('assets/success.mp3')}}");
                     audio.play();
                     if (data.room_id == room_id){
+                        $.post("{{route('markAsRead')}}", {"id": id,"_token": "{{csrf_token()}}"});
                         var str = `
                             <div class="d-flex justify-content-end">
                                 <div class="msg_cotainer">
@@ -227,9 +234,9 @@
                         chatBody.append(str);
                     }else{
                         $('.myRoom#'+data.room_id).find('#unreadCount').text(data.count)
-                        $('.myRoom#'+data.room_id).find('.messageTime').text(data.time)
                     }
-
+                    $('.myRoom#'+data.room_id).find('.messageTime').text(data.time)
+                    $('.myRoom#'+data.room_id).find('.lastChat').text(data.msg)
                 }
                 chatBody.animate({scrollTop: $('#chatBody').prop("scrollHeight")}, 1000);
             })

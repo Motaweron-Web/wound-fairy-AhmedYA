@@ -94,6 +94,7 @@ Route::group(['prefix' => 'admin'], function () {
         Route::post('sendAdminMessage' , 'ChatController@sendAdminMessage' )->name('sendAdminMessage');
         Route::get('getNewMessage' , 'ChatController@getNewMessage' )->name('getNewMessage');
         Route::get('getOldMessages' , 'ChatController@getOldMessages' )->name('getOldMessages');
+        Route::post('markAsRead' , 'ChatController@markAsRead' )->name('markAsRead');
         Route::get('testSend' , 'ChatController@testSend' )->name('testSend');
 
 

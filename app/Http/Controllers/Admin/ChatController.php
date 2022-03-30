@@ -56,7 +56,7 @@ class ChatController extends Controller
         if ($info){
             broadcast(new ChatEvent($info->id));
         }
-        $info->since = $info->created_at->diffForHumans();
+        $info->since   = $info->created_at->diffForHumans();
         return response()->json(['code'=>200,'info'=>$info],200);
     }//end fun
 
@@ -68,7 +68,7 @@ class ChatController extends Controller
            'date'         => date('y-m-d'),
            'time'         => Carbon::now()->addHours(2),
            'is_read'      => '0',
-           'text'         => ' عمد',
+           'text'         => ' رسالة من اليوزر',
         ]);
         broadcast(new ChatEvent($info->id));
         return $info;
@@ -112,6 +112,16 @@ class ChatController extends Controller
                 'photo'=>$photo,
                 'code'=>200
             ],200);
+    }
+
+    public function markAsRead(request $request){
+        $chat = Chat::findOrFail($request->id);
+        // mark message as read
+        $chat->is_read = '1';
+        $chat->save();
+        return response()->json([
+            'code'=>200
+        ],200);
     }
 
 
